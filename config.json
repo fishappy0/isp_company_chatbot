@@ -1,0 +1,7 @@
+{
+  "debug": {
+    "LANGSMITH_TRACING": "true",
+    "LANGSMITH_ENDPOINT": "https://api.smith.langchain.com",
+    "LAMGSMITH_PROJECT": "pr-isp-chatbot-1"
+  }
+}
