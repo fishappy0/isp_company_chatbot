@@ -1,3 +1,4 @@
 credentials.json
+src/rag/__pycache__
 data
 cvdb
