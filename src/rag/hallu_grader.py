@@ -25,7 +25,7 @@ class GradeHallucinations:
         )
         self.preamble = kwargs["preamble"] if "preamble" in kwargs else self.preamble
 
-    def is_hallucinated(self, x):
+    def is_grounded(self, x):
         structured_llm_grader = self.llm.with_structured_output(DMHallucinationGrader)
 
         hallucination_prompt = ChatPromptTemplate.from_messages(

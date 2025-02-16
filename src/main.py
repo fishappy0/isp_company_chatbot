@@ -1,13 +1,6 @@
 import os
 import json
-from rag import (
-    GroqGenerator,
-    HydeRetriever,
-    SqlSearch,
-    RetrievalGrader,
-    AnswerGrader,
-    GradeHallucinations,
-)
+from llm import rag_llm
 
 credentials = {}
 with open("./../credentials.json", "r") as f:
@@ -22,6 +15,29 @@ os.environ["GROQ_API_KEY"] = credentials["GROQ_API_KEY"]
 os.environ["LANGSMITH_API_KEY"] = credentials["LANGSMITH_API_KEY"]
 os.environ["REDIS_URL"] = config["REDIS_URL"]
 
+os.environ["LANGSMITH_TRACING"] = config["debug"]["LANGSMITH_TRACING"]
+os.environ["LANGSMITH_ENDPOINT"] = config["debug"]["LANGSMITH_ENDPOINT"]
+os.environ["LANGSMITH_PROJECT"] = config["debug"]["LAMGSMITH_PROJECT"]
+
+connection_string = f"postgresql://{credentials['db']['llm']['user']}:{credentials['db']['llm']['password']}@{credentials['db']['host']}:{credentials['db']['port']}/{credentials['db']['database']}"
+llm = rag_llm(connection_string=connection_string)
+print(
+    llm.answer(
+        {
+            # # "question": "My name is John Doe, I live in 123 Elm street, what packages are available in my area?",
+            # # "question": "What is the speed of the Sky and giga package? tell me the price as well",
+            # "redis_session_id": "ae2bbac96bd1f8f3e59526fac3c",
+        }
+    )
+)
+# router = Router()
+# print(
+#     router.get_route(
+#         {
+#             "question": "My name is John Doe, I live in 123 Elm street, what packages are available in my area?"
+#         }
+#     ).response_metadata["tool_calls"][0]["function"]["name"]
+# )
 # hallu_grader = GradeHallucinations()
 # print(
 #     hallu_grader.is_hallucinated(
