@@ -1,0 +1,41 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    hostname: db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    env_file:
+      - stack.env
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile.web
+    hostname: web
+    expose:
+      - "8501"
+    ports:
+      - "8501:8501"
+    env_file:
+      - path: stack.env
+        required: true
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    hostname: redis
+    # ports:
+    #   - "6379:6379"
+    # volumnes:
+    #   - redisdata:/data
+    # expose: 
+    #   - "6379"
+
+volumes:
+  pgdata:
+  redisdata:

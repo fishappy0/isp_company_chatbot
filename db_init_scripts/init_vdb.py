@@ -23,9 +23,9 @@ def init_vdb():
     )
 
     print("[isp_company_chatbot init] Loading documents...")
-    consumer_packages = Docx2txtLoader("./../data/consumer_packages.docx").load()
-    enterprise_packages = Docx2txtLoader("./../data/enterprise_packages.docx").load()
-    payment_methods = Docx2txtLoader("./../data/payment_methods.docx").load()
+    consumer_packages = Docx2txtLoader("./data/consumer_packages.docx").load()
+    enterprise_packages = Docx2txtLoader("./data/enterprise_packages.docx").load()
+    payment_methods = Docx2txtLoader("./data/payment_methods.docx").load()
 
     print("[isp_company_chatbot init] Splitting documents...")
     doc_splits = rec_splitter.split_documents(
@@ -33,7 +33,8 @@ def init_vdb():
     )
 
     print("[isp_company_chatbot init] Adding documents to vector store...")
-    embed = CohereEmbeddings(model="embed-english-v3.0")
+    cohere_api_key = os.environ["COHERE_API_KEY"]
+    embed = CohereEmbeddings(model="embed-english-v3.0", cohere_api_key=cohere_api_key)
     vector_store = Chroma(
         collection_name="isp_products_information",
         embedding_function=embed,

@@ -19,14 +19,8 @@ class rag_llm:
         self.grade_hallucinations = GradeHallucinations()
         self.router = Router()
 
-    def fallback(self):
-        return self.groq_generator.answer(
-            {
-                "question": "\n\n System: you are unable to answer the question at the moment. Please tell the user and then apologize"
-            }
-        )
-
     def answer(self, x):
+        fallback_prompt = "\n\n System: you are unable to answer the question at the moment. Please tell the user and then apologize"
         question = x["question"]
         tool_choice = self.router.get_route(question)  # QA & Routing
         ret = ""
@@ -42,8 +36,11 @@ class rag_llm:
                 )  # Relevant to question?
                 if grade.is_relevant == "no":
                     return self.groq_generator.answer(
-                        "\n\n"
-                        + "System: Unable to find relevant documents. Apologize for the inconvenience."
+                        {
+                            "question": "\n\n"
+                            + "System: Unable to find relevant documents. Apologize for the inconvenience.",
+                            "redis_session_id": redis_session_id,
+                        }
                     )
                 else:
                     is_grounded = False
@@ -69,10 +66,12 @@ class rag_llm:
                             is_grounded = True
                         regen_count -= 1
                         if regen_count == 0:
-                            return {
-                                "response": self.fallback(),
-                                "redis_session_id": redis_session_id,
-                            }
+                            return self.groq_generator.answer(
+                                {
+                                    "question": fallback_prompt,
+                                    "redis_session_id": redis_session_id,
+                                }
+                            )
 
                     is_answered = self.answer_grader.has_answered(
                         {"question": x["question"], "generation": ret}
@@ -80,10 +79,12 @@ class rag_llm:
                     if is_answered.replace(".", "").lower() == "yes":
                         return {"response": ret, "redis_session_id": redis_session_id}
                     else:
-                        return {
-                            "response": self.fallback(),
-                            "redis_session_id": redis_session_id,
-                        }
+                        return self.groq_generator.answer(
+                            {
+                                "question": fallback_prompt,
+                                "redis_session_id": redis_session_id,
+                            }
+                        )
 
             elif tool == "SqlSearch":  ### SQL Search route
                 query = self.sql_search.generate_sql_query(x)
@@ -123,10 +124,12 @@ class rag_llm:
                         is_grounded = True
                     regen_count -= 1
                     if regen_count == 0:
-                        return {
-                            "response": self.fallback(),
-                            "redis_session_id": redis_session_id,
-                        }
+                        return self.groq_generator.answer(
+                            {
+                                "question": fallback_prompt,
+                                "redis_session_id": redis_session_id,
+                            }
+                        )
 
                 is_answered = self.answer_grader.has_answered(
                     {"question": x["question"], "generation": ret}
@@ -134,9 +137,14 @@ class rag_llm:
                 if is_answered.replace(".", "").lower() == "yes":
                     return {"response": ret, "redis_session_id": redis_session_id}
                 else:
-                    return {
-                        "response": self.fallback(),
-                        "redis_session_id": redis_session_id,
-                    }
+                    return self.groq_generator.answer(
+                        {
+                            "question": fallback_prompt,
+                            "redis_session_id": redis_session_id,
+                        }
+                    )
+
         else:
-            return {"response": self.fallback(), "redis_session_id": redis_session_id}
+            return self.groq_generator.answer(
+                {"question": x["question"], "redis_session_id": redis_session_id}
+            )
